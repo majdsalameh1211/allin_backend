@@ -40,7 +40,7 @@ const startServer = async () => {
     // --- Connect to Supabase (ONCE) ---
     console.log('🔌 Connecting to Supabase...');
     const supabase = connectSupabase(); 
-    app.set('supabase', supabase); // Make accessible globally if needed
+    app.set('supabase', supabase);
 
     // --- Connect to MongoDB ---
     if (!process.env.MONGODB_URI) {
@@ -55,7 +55,7 @@ const startServer = async () => {
 
     // --- Start Listening ---
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {  // <-- Added '0.0.0.0'
       console.log('------------------------------------------------');
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📡 API: http://localhost:${PORT}/api`);
@@ -68,4 +68,10 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// Only start if run directly (not during require/import)
+if (require.main === module) {
+  startServer();
+}
+
+// Export for Railway
+module.exports = app;
