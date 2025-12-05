@@ -36,6 +36,10 @@ const adminSchema = new mongoose.Schema({
     enum: ['superadmin', 'admin'],
     default: 'admin'
   },
+  tokenVersion: {
+    type: Number,
+    default: 0
+  },
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -63,7 +67,11 @@ adminSchema.methods.matchPassword = async function (enteredPassword) {
 
 // Method to generate JWT
 adminSchema.methods.getSignedJwtToken = function () {
-  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
+return jwt.sign({ 
+    id: this._id, 
+    role: this.role,
+    version: this.tokenVersion 
+  }, process.env.JWT_SECRET, {
     expiresIn: '2h'
   });
 };

@@ -98,11 +98,15 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
-    const isMatch = await admin.matchPassword(password);
+const isMatch = await admin.matchPassword(password);
 
     if (!isMatch) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
+
+    // 3. ADDED: Increment version to invalidate OLD tokens/sessions
+    admin.tokenVersion = (admin.tokenVersion || 0) + 1;
+    await admin.save();
 
     sendTokenResponse(admin, 200, res);
 

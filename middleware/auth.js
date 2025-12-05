@@ -40,6 +40,14 @@ exports.protect = async (req, res, next) => {
       });
     }
 
+    // 4. ADDED: Check token version
+    if (decoded.version !== undefined && decoded.version !== req.admin.tokenVersion) {
+      return res.status(401).json({
+        success: false,
+        error: 'Session expired. Please log in again.'
+      });
+    }
+
     next();
   } catch (error) {
     console.error(error);
