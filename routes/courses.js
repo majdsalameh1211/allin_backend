@@ -83,7 +83,15 @@ router.get('/', async (req, res) => {
     // Only admins can see inactive courses if they query for them? 
     // Currently keeping it simple: Public gets active only.
     // You can add admin logic here if needed.
-    let query = Course.find({ active: true }).sort({ order: 1 });
+    // ✅ FIX: Allow fetching inactive courses if requested (e.g. by Admin)
+    const filter = {};
+
+    // Only hide inactive courses if we didn't specifically ask for them
+    if (req.query.includeInactive !== 'true') {
+      filter.active = true;
+    }
+
+    let query = Course.find(filter).sort({ order: 1 });
 
     if (limit) {
       query = query.limit(parseInt(limit));
@@ -102,7 +110,8 @@ router.get('/', async (req, res) => {
       duration: course.duration,
       instructor: course.instructor,
       image: course.image,
-      order: course.order
+      order: course.order,
+      active: course.active
     }));
 
     res.json(formattedCourses);
@@ -157,7 +166,7 @@ router.post('/', protect, authorize('admin', 'superadmin'), upload.single('image
     console.log('🔵 BACKEND - POST /courses called');
     console.log('   - req.body:', req.body);
     console.log('   - req.file exists?', !!req.file);
-    
+
     if (req.file) {
       console.log('   - req.file details:', {
         fieldname: req.file.fieldname,
@@ -175,7 +184,7 @@ router.post('/', protect, authorize('admin', 'superadmin'), upload.single('image
       console.log('✅ File detected, uploading to Supabase...');
       const fileName = generateUniqueFilename(req.file.originalname);
       console.log('   - Generated filename:', fileName);
-      
+
       try {
         const url = await supabaseService.uploadFile(req.file.buffer, fileName, req.file.mimetype);
         console.log('✅ Supabase upload successful! URL:', url);
