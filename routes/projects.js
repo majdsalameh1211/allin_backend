@@ -117,10 +117,14 @@ router.post('/', projectUpload, handleMulterError, async (req, res) => {
     fields.forEach(field => {
       if (req.body[field] !== undefined) {
         const value = Array.isArray(req.body[field]) ? req.body[field][0] : req.body[field];
-        if (value !== undefined && value !== '') {
-          projectData[field] = ['price', 'bedrooms', 'bathrooms', 'area'].includes(field)
-            ? Number(value)
-            : value;
+
+        if (field === 'currency' || field === 'type' || field === 'status' || field === 'areaUnit') {
+          updates[field] = value || (field === 'currency' ? 'ILS' : field === 'type' ? 'forSale' : field === 'status' ? 'active' : 'sqm');
+        } else if (field === 'price') {
+          updates[field] = value && Number(value) > 0 ? Number(value) : null;
+        } else {
+          // ✅ FIX: Save 'badge' and any other text fields directly
+          updates[field] = value;
         }
       }
     });
@@ -216,12 +220,13 @@ router.put('/:id', projectUpload, handleMulterError, async (req, res) => {
       if (req.body[field] !== undefined) {
         const value = Array.isArray(req.body[field]) ? req.body[field][0] : req.body[field];
 
-        // Always set required fields even if empty
         if (field === 'currency' || field === 'type' || field === 'status' || field === 'areaUnit') {
           updates[field] = value || (field === 'currency' ? 'ILS' : field === 'type' ? 'forSale' : field === 'status' ? 'active' : 'sqm');
         } else if (field === 'price') {
-          // ✅ Price is optional - only set if provided
           updates[field] = value && Number(value) > 0 ? Number(value) : null;
+        } else {
+          // ✅ FIX: Save all other fields (badge, bedrooms, bathrooms, area, etc.)
+          updates[field] = value;
         }
       }
     });

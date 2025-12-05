@@ -5,9 +5,18 @@ const sharp = require('sharp');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 class SupabaseService {
-  constructor() {
-    // You can change this to 'test' or 'public'
-    this.bucket = process.env.SUPABASE_BUCKET || 'media';
+constructor() {
+    // 1. Get bucket from env
+    const envBucket = process.env.SUPABASE_BUCKET;
+
+    // 2. Validate & Sanitize:
+    // - If it exists, trim spaces (common .env error)
+    // - If it's missing or empty, default to 'media'
+    this.bucket = (envBucket && envBucket.trim() !== '') 
+      ? envBucket.trim() 
+      : 'media';
+
+    console.log(`🔧 Supabase Service initialized. Using bucket: "${this.bucket}"`);
   }
 
   // ==========================================
