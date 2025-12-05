@@ -151,18 +151,25 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // Find active services, sorted by order
-    const services = await Service.find({ active: true })
+    // ✅ FIX: Allow fetching inactive services if requested (e.g. by Admin)
+    const query = {};
+    if (req.query.includeInactive !== 'true') {
+      query.active = true; // Default behavior (Public site): Active only
+    }
+
+    const services = await Service.find(query)
       .sort({ order: 1 })
       .populate('relatedProjects', 'translations.en.title translations.ar.title translations.he.title mainImage price type');
-
     // Format services with selected language
+// Format services with selected language
     const formattedServices = services.map(service => ({
       id: service._id,
       title: service.translations[lang].title,
       description: service.translations[lang].description,
       icon: service.icon,
       order: service.order,
+      // ✅ FIX: Include the active status in the response
+      active: service.active, 
       projectCount: service.relatedProjects.length,
       relatedProjects: service.relatedProjects.map(project => ({
         id: project._id,
